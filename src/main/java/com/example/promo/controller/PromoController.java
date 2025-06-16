@@ -6,9 +6,11 @@ import com.example.promo.repository.PromoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -20,10 +22,16 @@ public class PromoController {
 
     @PostMapping("/create")
     public ApiResponse<Promo> createPromo(@RequestBody Promo promo) {
-          // Generate random coupon code like "PROMO-XYZ123"
-    String generatedCode = "PROMO-" + java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-    promo.setCouponCode(generatedCode);
-
+        // Generate random coupon code like "PROMO-XYZ123"
+        String couponName = promo.getCouponName();
+    if (couponName != null && couponName.length() >= 3) {
+        String prefix = couponName.substring(0, 3).toUpperCase();
+        String digits = couponName.replaceAll("\\D+", ""); // extract numbers
+        String generatedCode = prefix + digits;
+        promo.setCouponCode(generatedCode);
+    } else {
+        promo.setCouponCode(""); 
+    }
 
         Promo saved = promoRepository.save(promo);
         return new ApiResponse<>("success", "Promo created successfully", saved);
@@ -75,5 +83,40 @@ public class PromoController {
             return new ApiResponse<>("error", "Promo not found with id: " + id, null);
         }
     }
+
+@GetMapping("/search")
+public ApiResponse<List<Promo>> searchPromos(
+        @RequestParam(required = false) String couponName,
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate) {
+
+    List<Promo> allPromos = promoRepository.findAll();
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+    List<Promo> filteredPromos = allPromos.stream()
+        .filter(p -> {
+            // Optional name filter
+            if (couponName != null && !p.getCouponName().toLowerCase().contains(couponName.toLowerCase())) {
+                return false;
+            }
+
+            // Optional createdDate filter
+            if (startDate != null && endDate != null) {
+                try {
+                    if (p.getCreatedDate() == null) return false;
+                    Date start = sdf.parse(startDate);
+                    Date end = sdf.parse(endDate);
+                    return !p.getCreatedDate().before(start) && !p.getCreatedDate().after(end);
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+
+            return true; // if no filter applies, include all
+        })
+        .collect(Collectors.toList());
+
+    return new ApiResponse<>("success", "Filtered promos", filteredPromos);
+}
 
 }
