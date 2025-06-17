@@ -9,6 +9,7 @@ public class Users {
     private List<String> clinic;
     private List<String> me;
     private List<String> cbm;
+    private List<String> patient; // ✅ Added this field
 
     // No-arg constructor
     public Users() {
@@ -60,5 +61,13 @@ public class Users {
 
     public void setCbm(List<String> cbm) {
         this.cbm = cbm;
+    }
+
+    public List<String> getPatient() {
+        return patient;
+    }
+
+    public void setPatient(List<String> patient) {
+        this.patient = patient;
     }
 }

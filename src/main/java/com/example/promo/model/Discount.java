@@ -42,4 +42,23 @@ public class Discount {
     public void setRange(List<DiscountRange> range) {
         this.range = range;
     }
+    public int getDiscountValue(double amount) {
+        if (range == null) {
+            return 0;
+        }
+
+        for (DiscountRange r : range) {
+            double start = r.getStartRange();
+            double end = r.getEndRange();
+
+            boolean inRange = (amount >= start) && (end == -1 || amount <= end);
+            if (inRange) {
+                System.out.println("Match found. Discount = " + r.getDiscountValue());
+                return r.getDiscountValue();
+            }
+        }
+        return 0;
+    }
+
+
 }

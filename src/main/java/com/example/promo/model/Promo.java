@@ -21,7 +21,7 @@ public class Promo {
     private BusinessLines businessLines;
 
     // private Regions regions;
-    // private Users users;
+     private Users users;
 
     
     @CreatedDate
@@ -76,9 +76,9 @@ public class Promo {
     //     return regions;
     // }
 
-    // public Users getUsers() {
-    //     return users;
-    // }
+     public Users getUsers() {
+         return users;
+     }
 
     // ✅ Setters
     public void setId(String id) {
@@ -125,7 +125,7 @@ public class Promo {
     //     this.regions = regions;
     // }
 
-    // public void setUsers(Users users) {
-    //     this.users = users;
-    // }
+     public void setUsers(Users users) {
+         this.users = users;
+     }
 }
