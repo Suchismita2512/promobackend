@@ -28,6 +28,47 @@ public class CouponValidationServiceImpl implements CouponValidationService {
     private RedemptionLogRepository redemptionRepository;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    
+    @Override
+    public BenefitsDTO removeCoupon(BenefitsDTO requestDTO) {
+        BenefitsDTO responseDTO = new BenefitsDTO();
+
+        // Copy all fields from request to response (shallow copy)
+        BeanUtils.copyProperties(requestDTO, responseDTO);
+
+        // Reset main cart values
+        responseDTO.setDiscountAmount(0);
+        responseDTO.setPaidAmount(requestDTO.getAmount());
+
+        String cartType = requestDTO.getCartType();
+        if ("MED".equalsIgnoreCase(cartType)) {
+            // Update medicine items
+            if (requestDTO.getMedicineItems() != null) {
+                requestDTO.getMedicineItems().forEach(item -> {
+                    item.setDiscountAmount(0.0);
+                    item.setTotalAmount(item.getUnitPrice() * item.getQuantity());
+                });
+            }
+            responseDTO.setMedicineItems(requestDTO.getMedicineItems());
+        } else if ("LAB".equalsIgnoreCase(cartType)) {
+            // Update lab test items
+            if (requestDTO.getLabTestItems() != null) {
+                requestDTO.getLabTestItems().forEach(item -> {
+                    item.setDiscountAmount(0.0);
+                    item.setTotalAmount(item.getAmount());
+                });
+            }
+            responseDTO.setLabTestItems(requestDTO.getLabTestItems());
+        }
+
+        // Clear coupon code
+        responseDTO.setCouponCode(null);
+        responseDTO.setValid(false);
+        responseDTO.setMessage("Coupon removed");
+
+        return responseDTO;
+    }
+
 
     public BenefitsDTO validateCoupon(BenefitsDTO requestDTO) {
     	System.out.println("Checking Drug Typee " + requestDTO);
@@ -117,7 +158,7 @@ public class CouponValidationServiceImpl implements CouponValidationService {
                 if (categories != null && !categories.isEmpty()) {
                     for (LabTestItemDTO item : labTestItems) {
                     	if (categories.stream().anyMatch(cat -> 
-                        "ALL".equalsIgnoreCase(cat) || cat.equalsIgnoreCase(item.getLabType())
+                        "ALL".equalsIgnoreCase(cat) || cat.equalsIgnoreCase(item.getLabTestType())
                     )) {
                             applicableItems.add(item);
                             totalApplicableAmount += item.getTotalAmount();
@@ -169,11 +210,6 @@ public class CouponValidationServiceImpl implements CouponValidationService {
         }
 
         // ✅ Update cart
-//        CartDTO responseCart = requestDTO;
-//        responseDTO.setCart(responseCart);
-//        responseCart.setDiscountAmount(totalDiscount);
-//        responseCart.setPaidAmount(responseCart.getAmount() - totalDiscount);
-//        responseCart.setVoucherCode(promo.getCouponCode());
         BeanUtils.copyProperties(requestDTO, responseDTO);
         System.out.println("Checking Drug Typee " + responseDTO);
         responseDTO.setPaidAmount(requestDTO.getAmount() - totalDiscount);
