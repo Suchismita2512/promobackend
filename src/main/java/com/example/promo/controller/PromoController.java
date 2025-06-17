@@ -2,6 +2,7 @@ package com.example.promo.controller;
 
 import com.example.promo.ApiResponse;
 import com.example.promo.model.Promo;
+import com.example.promo.repository.PromoRepository;
 import com.example.promo.service.PromoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,9 @@ public class PromoController {
 
     @Autowired
     private PromoService promoService;
+
+    @Autowired
+    PromoRepository promoRepository;
 
      @PostMapping("/create")
     public ApiResponse<Promo> createPromo(@RequestBody Promo promo) {
